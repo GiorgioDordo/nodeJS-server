@@ -11,7 +11,13 @@ const products = [];
 // next is a function that will be passed to the surrounding function by express.js, and it allows the request to travel to the next middleware
 // the method use() accepts an array of so called request handlers
 router.get('/add-product', (req, res, next) => {
-  res.render('add-product', { docTitle: 'Add Product' }); // sending a response to the client
+  res.render('add-product', {
+    docTitle: 'Add Product',
+    path: '/admin/add-product',
+    formCSS: true,
+    productCSS: true,
+    activeAddProduct: true,
+  }); // sending a response to the client
 });
 
 router.post('/add-product', (req, res, next) => {

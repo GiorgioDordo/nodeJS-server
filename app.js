@@ -1,14 +1,21 @@
 // importing the http module that we need to create a server
+const path = require('path');
 const bodyParser = require('body-parser');
-
 const express = require('express');
+const { engine } = require('express-handlebars');
 
 const app = express();
 
-app.set('view engine', 'pug'); // setting pug as the template engine
+app.engine(
+  'hbs',
+  engine({
+    layoutsDir: 'views/layouts',
+    defaultLayout: 'main',
+    extname: 'hbs',
+  })
+);
+app.set('view engine', 'hbs'); // setting the template engine
 app.set('views', 'views'); // setting the views directory
-
-const path = require('path');
 
 const rootDir = require('./utility/path');
 
