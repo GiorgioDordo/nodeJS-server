@@ -2,19 +2,10 @@
 const path = require('path');
 const bodyParser = require('body-parser');
 const express = require('express');
-const { engine } = require('express-handlebars');
 
 const app = express();
 
-app.engine(
-  'hbs',
-  engine({
-    layoutsDir: 'views/layouts',
-    defaultLayout: 'main',
-    extname: 'hbs',
-  })
-);
-app.set('view engine', 'hbs'); // setting the template engine
+app.set('view engine', 'ejs'); // setting the template engine
 app.set('views', 'views'); // setting the views directory
 
 const rootDir = require('./utility/path');
