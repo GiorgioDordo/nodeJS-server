@@ -23,7 +23,7 @@ app.use('/admin', adminRoutes.router); // registering the admin routes\
 app.use(shopRoutes); // registering the shop routes
 
 app.use((req, res, next) => {
-  res.status(404).render('404', { docTitle: '404' });
+  res.status(404).render('404', { docTitle: '404', path: '' });
 });
 
 // creating a server that listens on port 3000
