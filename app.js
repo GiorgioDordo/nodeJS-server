@@ -8,8 +8,6 @@ const app = express();
 app.set('view engine', 'ejs'); // setting the template engine
 app.set('views', 'views'); // setting the views directory
 
-const rootDir = require('./utility/path');
-
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
 
@@ -19,9 +17,11 @@ app.use(bodyParser.urlencoded({ extended: false })); // I should pass the config
 
 app.use(express.static(path.join(__dirname, 'public'))); // serving static files like css, images, js files
 
+//**MY ROUTES */
 app.use('/admin', adminRoutes.router); // registering the admin routes\
-app.use(shopRoutes); // registering the shop routes
+app.use(shopRoutes.router); // registering the shop routes
 
+// ** REDIRECTION 404
 app.use((req, res, next) => {
   res.status(404).render('404', { docTitle: '404', path: '' });
 });

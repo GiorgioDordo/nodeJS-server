@@ -15,10 +15,7 @@ router.get('/', (req, res, next) => {
     prods: adminData.products,
     docTitle: 'Shop',
     path: '/',
-    hasProducts: adminData.products.length > 0,
-    productCSS: true,
-    activeShop: true,
   });
 });
 
-module.exports = router;
+exports.router = router;
