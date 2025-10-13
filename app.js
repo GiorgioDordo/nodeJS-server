@@ -2,6 +2,7 @@
 const path = require('path');
 const bodyParser = require('body-parser');
 const express = require('express');
+const errorPage = require('./controllers/404.js');
 
 const app = express();
 
@@ -22,9 +23,7 @@ app.use('/admin', adminRoutes.router); // registering the admin routes\
 app.use(shopRoutes.router); // registering the shop routes
 
 // ** REDIRECTION 404
-app.use((req, res, next) => {
-  res.status(404).render('404', { docTitle: '404', path: '' });
-});
+app.use(errorPage.error404);
 
 // creating a server that listens on port 3000
 app.listen(3000);

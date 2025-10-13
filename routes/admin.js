@@ -2,27 +2,14 @@ const express = require('express');
 
 const router = express.Router();
 
-const path = require('path');
+const productsController = require('../controllers/product.js');
 
-const rootDir = require('../utility/path');
-
-const products = [];
+// const path = require('path');
 
 // next is a function that will be passed to the surrounding function by express.js, and it allows the request to travel to the next middleware
 // the method use() accepts an array of so called request handlers
-router.get('/add-product', (req, res, next) => {
-  res.render('add-product', {
-    docTitle: 'Add Product',
-    path: '/admin/add-product',
-  }); // sending a response to the client
-});
+router.get('/add-product', productsController.getAddProduct);
 
-router.post('/add-product', (req, res, next) => {
-  console.log(req.body);
-  products.push({ title: req.body.title });
-  // res.send(`<h1>Product: ${product}</h1>`); // sending a response to the client
-  res.redirect('/'); // redirecting the user to the home page
-});
+router.post('/add-product', productsController.postAddProduct);
 
 exports.router = router;
-exports.products = products;
