@@ -23,11 +23,22 @@ exports.getIndex = (req, res, next) => {
 };
 
 exports.getProducts = (req, res, next) => {
-  res.render('shop/products', { docTitle: 'All Products', path: '/products' }); // sending a response to the client
+  Product.fetchAll((products) => {
+    console.log('product-list');
+    res.render('shop/product-list', {
+      prods: products,
+      docTitle: 'All Products',
+      path: '/products',
+    });
+  });
 };
 
 exports.getCart = (req, res, next) => {
   res.render('shop/cart', { docTitle: 'Your Cart', path: '/cart' }); // sending a response to the client
+};
+
+exports.getOrders = (req, res, next) => {
+  res.render('shop/orders', { docTitle: 'Your Orders', path: '/orders' }); // sending a response to the client
 };
 
 exports.getCheckout = (req, res, next) => {

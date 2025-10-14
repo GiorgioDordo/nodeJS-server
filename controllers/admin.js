@@ -9,7 +9,11 @@ exports.getAddProduct = (req, res, next) => {
 
 exports.postAddProduct = (req, res, next) => {
   console.log(req.body);
-  const product = new Product(req.body.title);
+  const title = req.body.title;
+  const imageUrl = req.body.imageUrl;
+  const description = req.body.description;
+  const price = req.body.price;
+  const product = new Product(title, imageUrl, description, price);
   product.save();
   // res.send(`<h1>Product: ${product}</h1>`); // sending a response to the client
   res.redirect('/'); // redirecting the user to the home page
