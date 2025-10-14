@@ -58,7 +58,7 @@ exports.postCart = (req, res, next) => {
   Product.findById(prodId, (product) => {
     Cart.addProduct(prodId, product.price);
   });
-  res.redirect('shop/cart');
+  res.redirect('/cart');
 };
 
 // TODO: ORDERS //
