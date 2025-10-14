@@ -33,6 +33,14 @@ exports.getProducts = (req, res, next) => {
   });
 };
 
+exports.getProduct = (req, res, next) => {
+  const prodId = req.params.productId;
+  Product.findById(prodId, (product) => {
+    console.log(product);
+    console.log('details', prodId);
+  });
+};
+
 exports.getCart = (req, res, next) => {
   res.render('shop/cart', { docTitle: 'Your Cart', path: '/cart' }); // sending a response to the client
 };

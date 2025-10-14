@@ -1,1 +1,23 @@
-[{"title":"Book","imageUrl":"https://pictures.abebooks.com/isbn/9781408856772-it.jpg","description":"Harry potter","price":"19.99"}]
+[
+  {
+    "id": "2534",
+    "title": "Book",
+    "imageUrl": "https://png.pngtree.com/png-clipart/20231021/original/pngtree-watercolor-library-book-clip-art-png-image_13391689.png",
+    "description": "Some books",
+    "price": "19.99"
+  },
+  {
+    "title": "Book 2",
+    "imageUrl": "https://png.pngtree.com/png-clipart/20231021/original/pngtree-watercolor-library-book-clip-art-png-image_13391689.png",
+    "description": "Book 2",
+    "price": "9.99",
+    "id": "0.17737909533652452"
+  },
+  {
+    "title": "",
+    "imageUrl": "",
+    "description": "",
+    "price": "",
+    "id": "0.4553249941468843"
+  }
+]
