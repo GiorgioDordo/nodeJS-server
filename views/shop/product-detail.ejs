@@ -1,4 +1,4 @@
-<!-- <%- include('../partials/head.ejs') %>
+<%- include('../partials/head.ejs') %>
     <link rel="stylesheet" href="/css/product.css" />
   </head>
 
@@ -10,25 +10,23 @@
       <div class="grid">
         <article class="card product-item">
           <header class="card__header">
-            <h1 class="product__title">Product Title</h1>
+            <h1 class="product__title"><%= product.title %></h1>
           </header>
           <div class="card__image">
             <img
-              src="https://png.pngtree.com/png-clipart/20231021/original/pngtree-watercolor-library-book-clip-art-png-image_13391689.png"
-              alt="Product Title" />
+              src="<%= product.imageUrl %>"
+              alt="<%= product.title %>" />
           </div>
           <div class="card__content">
-            <h2 class="product__price">$19.99</h2>
+            <h2 class="product__price">$<%= product.price %></h2>
             <p class="product__description">
-              Product Description
+              <%= product.description %>
             </p>
           </div>
           <div class="card__actions">
-            <form action="/add-to-cart" method="POST">
-                <button class="btn">Add to Cart</button>
-            </form>
+            <%- include('../partials/add-to-cart.ejs') %>
           </div>
         </article>
       </div>
     </main>
-<%- include('../partials/end.ejs') %> -->
+<%- include('../partials/end.ejs') %>
