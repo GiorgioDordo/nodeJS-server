@@ -50,6 +50,18 @@ module.exports = class Product {
     fs.readFile(p, (err, fileContent) => {});
   }
 
+  static deleteById(id) {
+    getProductsFromFile((products) => {
+      const product = products.find((prod) => prod.id === id);
+      const updatedProducts = products.filter((prod) => prod.id !== id);
+      fs.writeFile(p, JSON.stringify(updatedProducts), (err) => {
+        if (!err) {
+          Cart.deleteProduct(id, product.price);
+        }
+      });
+    });
+  }
+
   static fetchAll(cb) {
     getProductsFromFile(cb);
   }
@@ -58,21 +70,6 @@ module.exports = class Product {
     getProductsFromFile((products) => {
       const product = products.find((p) => p.id === id);
       cb(product);
-    });
-  }
-
-  static deleteById(id) {
-    getProductsFromFile((products) => {
-      const product = products.find((p) => p.id === id);
-      if (!product) {
-        return;
-      }
-      const updatedProducts = products.filter((p) => p.id !== id);
-      fs.writeFile(p, JSON.stringify(updatedProducts), (err) => {
-        if (!err) {
-          Cart.deleteProduct(id, product.price);
-        }
-      });
     });
   }
 };

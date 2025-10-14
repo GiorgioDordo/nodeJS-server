@@ -70,8 +70,8 @@ exports.getAdminProducts = (req, res, next) => {
 };
 
 // TODO: DELETE PRODUCT //
-exports.deleteProduct = (req, res, next) => {
-  const prodId = req.params.productId;
+exports.postDeleteProduct = (req, res, next) => {
+  const prodId = req.body.productId;
   Product.deleteById(prodId);
   res.redirect('/admin/products');
 };
