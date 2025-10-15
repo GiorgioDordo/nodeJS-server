@@ -3,6 +3,7 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const express = require('express');
 const errorPage = require('./controllers/404.js');
+const db = require('./utility/database.js');
 
 const app = express();
 
@@ -21,6 +22,14 @@ app.use(express.static(path.join(__dirname, 'public'))); // serving static files
 //**MY ROUTES */
 app.use('/admin', adminRoutes.router); // registering the admin routes\
 app.use(shopRoutes.router); // registering the shop routes
+
+db.execute('SELECT * FROM products')
+  .then((result) => {
+    console.log(result);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
 
 // ** REDIRECTION 404
 app.use(errorPage.error404);

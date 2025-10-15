@@ -13,14 +13,17 @@ exports.getProducts = (req, res, next) => {
 };
 
 exports.getIndex = (req, res, next) => {
-  Product.fetchAll((products) => {
-    console.log('index');
-    res.render('shop/index', {
-      prods: products,
-      docTitle: 'Shop',
-      path: '/',
+  Product.fetchAll()
+    .then(([rows, fieldData]) => {
+      res.render('shop/index', {
+        prods: rows,
+        docTitle: 'Shop',
+        path: '/',
+      });
+    })
+    .catch((err) => {
+      console.log(err);
     });
-  });
 };
 
 exports.getProducts = (req, res, next) => {
