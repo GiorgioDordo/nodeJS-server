@@ -3,15 +3,14 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const express = require('express');
 const errorPage = require('./controllers/404.js');
-const db = require('./utility/database.js');
+const sequelize = require('./utility/database.js');
+const adminRoutes = require('./routes/admin');
+const shopRoutes = require('./routes/shop');
 
 const app = express();
 
 app.set('view engine', 'ejs'); // setting the template engine
 app.set('views', 'views'); // setting the views directory
-
-const adminRoutes = require('./routes/admin');
-const shopRoutes = require('./routes/shop');
 
 // urlencoded register a middleware like the one we created below and add next() to it so that the request can continue to the next middleware and it also parses the incoming request body and makes it available under req.body
 // it can't parse json data, for that we need to use bodyParser.json() and it can't parse files, for that we need to use multer package
@@ -23,16 +22,17 @@ app.use(express.static(path.join(__dirname, 'public'))); // serving static files
 app.use('/admin', adminRoutes.router); // registering the admin routes\
 app.use(shopRoutes.router); // registering the shop routes
 
-db.execute('SELECT * FROM products')
+// ** REDIRECTION 404
+app.use(errorPage.error404);
+
+sequelize
+  .sync()
   .then((result) => {
     console.log(result);
   })
   .catch((err) => {
     console.log(err);
   });
-
-// ** REDIRECTION 404
-app.use(errorPage.error404);
 
 // creating a server that listens on port 3000
 app.listen(3000);
