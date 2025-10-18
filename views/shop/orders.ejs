@@ -6,6 +6,23 @@
     <%- include('../partials/navigation.ejs') %>
 
     <main>
-<h1>ORDERS</h1>
+      <% if (orders.length > 0) { %>
+        <ul class="order__item-list">
+            <% orders.forEach(order => { %>
+            <li class="order__item">
+                <h1># <%= order.id %></h1>
+                <ul>
+                  <% order.products.forEach(p => { %>
+                  <li>
+                    <h2><%= p.title %> - Quantity: <%= p.orderItem.quantity %></h2>
+                  </li>
+                  <% }) %>
+                </ul>
+            </li>
+          <% }) %>
+        </ul>
+      <% } else { %>
+        <h1>No Orders Found!</h1>
+      <% } %>
     </main>
 <%- include('../partials/end.ejs') %>
