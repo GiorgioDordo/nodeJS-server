@@ -10,6 +10,8 @@ const Product = require('./models/product.js');
 const User = require('./models/user.js');
 const Cart = require('./models/cart.js');
 const CartItem = require('./models/cart-item.js');
+const Order = require('./models/order.js');
+const OrderItem = require('./models/order-item.js');
 
 const app = express();
 
@@ -28,6 +30,10 @@ User.hasOne(Cart);
 Cart.belongsTo(User);
 Cart.belongsToMany(Product, { through: CartItem });
 Product.belongsToMany(Cart, { through: CartItem });
+Order.belongsTo(User);
+User.hasMany(Order);
+Order.belongsToMany(Product, { through: OrderItem });
+Product.belongsToMany(Order, { through: OrderItem });
 
 app.use((req, res, next) => {
   User.findByPk(1)
@@ -61,6 +67,7 @@ sequelize
   })
   .then((user) => {
     console.log('Avvio user', user);
+    console.log('User methods:', Object.getOwnPropertyNames(user.__proto__));
     return user.createCart();
   })
   .then((cart) => {
