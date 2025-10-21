@@ -1,38 +1,29 @@
+const User = require('../models/user');
+
 exports.getLogin = (req, res, next) => {
-  //   const cookieHeader = req.get('Cookie'); // Raw cookie string
-  // console.log('Raw cookies:', cookieHeader); // "isLoggedIn=true; theme=dark; sessionId=123"
-
-  // let isLoggedIn = false;
-
-  // if (cookieHeader) {
-  //   // Split cookies and find the one we want
-  //   const cookies = cookieHeader.split(';');
-  //   const loginCookie = cookies.find(cookie =>
-  //     cookie.trim().startsWith('isLoggedIn=')
-  //   );
-
-  //   if (loginCookie) {
-  //     const cookieValue = loginCookie.trim().split('=')[1];
-  //     isLoggedIn = cookieValue === 'true';
-  //   }
-  // }
-
-  // console.log('Extracted isLoggedIn:', isLoggedIn);
-  console.log('COOKIE VALUE: =>', req.cookies);
-  console.log(Boolean(req.cookies.isLoggedIn));
   res.render('auth/login', {
-    docTitle: 'Login',
     path: '/login',
-    isAuthenticated: req.cookies.isLoggedIn === 'true',
-  }); // sending a response to the client
+    docTitle: 'Login',
+    isAuthenticated: false,
+  });
 };
 
 exports.postLogin = (req, res, next) => {
-  res.setHeader('Set-Cookie', 'isLoggedIn=true;');
-  res.redirect('/'); // sending a response to the client
+  User.findByPk(1) // Remove quotes - findByPk expects number
+    .then((user) => {
+      req.session.isLoggedIn = true;
+      req.session.user = user;
+      req.session.save((err) => {
+        console.log(err);
+        res.redirect('/');
+      });
+    })
+    .catch((err) => console.log(err));
 };
 
 exports.postLogout = (req, res, next) => {
-  res.clearCookie('isLoggedIn');
-  res.redirect('/'); // sending a response to the client
+  req.session.destroy((err) => {
+    console.log(err);
+    res.redirect('/');
+  });
 };

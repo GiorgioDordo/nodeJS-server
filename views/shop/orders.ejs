@@ -5,24 +5,22 @@
   <body>
     <%- include('../partials/navigation.ejs') %>
 
-    <main>
-      <% if (orders.length > 0) { %>
-        <ul class="order__item-list">
-            <% orders.forEach(order => { %>
-            <li class="order__item">
-                <h1># <%= order.id %></h1>
-                <ul>
-                  <% order.products.forEach(p => { %>
-                  <li>
-                    <h2><%= p.title %> - Quantity: <%= p.orderItem.quantity %></h2>
-                  </li>
-                  <% }) %>
+        <main>
+            <% if (orders.length <= 0) { %>
+                <h1>Nothing there!</h1>
+            <% } else { %>
+                <ul class="orders">
+                    <% orders.forEach(order => { %>
+                        <li class="orders__item">
+                            <h1>Order - # <%= order.id %></h1>
+                            <ul class="orders__products">
+                                <% order.products.forEach(p => { %>
+                                    <li class="orders__products-item"><%= p.title %> (<%= p.orderItem.quantity %>)</li>
+                                <% }); %>
+                            </ul>
+                        </li>
+                    <% }); %>
                 </ul>
-            </li>
-          <% }) %>
-        </ul>
-      <% } else { %>
-        <h1>No Orders Found!</h1>
-      <% } %>
-    </main>
+            <% } %>
+        </main>
 <%- include('../partials/end.ejs') %>

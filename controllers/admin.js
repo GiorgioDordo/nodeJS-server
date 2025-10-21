@@ -5,7 +5,7 @@ exports.getAddProduct = (req, res, next) => {
     docTitle: 'Add Product',
     path: '/admin/add-product',
     editing: false,
-    isAuthenticated: req.cookies.isLoggedIn === 'true',
+    isAuthenticated: req.session.isLoggedIn,
   }); // sending a response to the client
 };
 
@@ -15,22 +15,19 @@ exports.postAddProduct = (req, res, next) => {
   const imageUrl = req.body.imageUrl;
   const description = req.body.description;
   const price = req.body.price;
+
   Product.create({
     title: title,
     price: price,
-    imageUrl: imageUrl,
     description: description,
-    userId: req.user.id,
+    imageUrl: imageUrl,
+    userId: req.session.user.id,
   })
     .then((result) => {
-      console.log('---------------------------------------------------------');
-      console.log('Created Product', result);
-      console.log('---------------------------------------------------------');
+      console.log('Created Product');
       res.redirect('/admin/products');
     })
-    .catch((err) => {
-      console.log(err);
-    });
+    .catch((err) => console.log(err));
 };
 
 exports.getEditProduct = (req, res, next) => {
@@ -39,13 +36,7 @@ exports.getEditProduct = (req, res, next) => {
     return res.redirect('/');
   }
   const prodId = req.params.productId;
-  Product.findOne({
-    where: {
-      id: prodId,
-      userId: req.user.id,
-    },
-  })
-    // Product.findByPk(prodId)
+  Product.findByPk(prodId)
     .then((product) => {
       console.log(product);
       if (!product) {
@@ -56,7 +47,7 @@ exports.getEditProduct = (req, res, next) => {
         path: '/admin/edit-product',
         editing: editMode,
         product: product,
-        isAuthenticated: req.cookies.isLoggedIn === 'true',
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => {
@@ -110,7 +101,7 @@ exports.getAdminProducts = (req, res, next) => {
         prods: products,
         docTitle: 'Admin Products',
         path: '/admin/products',
-        isAuthenticated: req.cookies.isLoggedIn === 'true',
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => {

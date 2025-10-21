@@ -10,7 +10,7 @@ exports.getProducts = (req, res, next) => {
         prods: products,
         docTitle: 'All Products',
         path: '/products',
-        isAuthenticated: req.cookies.isLoggedIn === 'true',
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => {
@@ -26,7 +26,7 @@ exports.getIndex = (req, res, next) => {
         prods: products,
         docTitle: 'Shop',
         path: '/',
-        isAuthenticated: req.cookies.isLoggedIn === 'true',
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => {
@@ -44,7 +44,7 @@ exports.getProduct = (req, res, next) => {
         product: product,
         docTitle: product.title,
         path: '/products',
-        isAuthenticated: req.cookies.isLoggedIn === 'true',
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => {
@@ -54,26 +54,20 @@ exports.getProduct = (req, res, next) => {
 
 // TODO: CART //
 exports.getCart = (req, res, next) => {
-  console.log('REQ.USER.CART---------------------------------', req.user.cart);
-  req.user
-    .getCart()
-    .then((cart) => {
-      console.log('CART', cart);
-      return cart
-        .getProducts()
-        .then((products) => {
-          res.render('shop/cart', {
-            docTitle: 'Your Cart',
-            path: '/cart',
-            products: products,
-            isAuthenticated: req.cookies.isLoggedIn === 'true',
-          });
-        })
-        .catch((err) => console.log(err));
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  req.session.user.getCart().then((cart) => {
+    console.log('CART', cart);
+    return cart
+      .getProducts()
+      .then((products) => {
+        res.render('shop/cart', {
+          docTitle: 'Your Cart',
+          path: '/cart',
+          products: products,
+          isAuthenticated: req.session.isLoggedIn,
+        });
+      })
+      .catch((err) => console.log(err));
+  });
   // Cart.getProducts((cart) => {
   //   Product.fetchAll((products) => {
   //     const cartProducts = [];
@@ -98,7 +92,7 @@ exports.postCart = (req, res, next) => {
   const prodId = req.body.productId;
   let fetchedCart;
   let newQuantity = 1;
-  req.user
+  req.session.user
     .getCart()
     .then((cart) => {
       fetchedCart = cart;
@@ -108,11 +102,7 @@ exports.postCart = (req, res, next) => {
       let product;
       if (products.length > 0) {
         product = products[0];
-      }
-
-      if (product) {
-        const oldQuantity = product.cartItem.quantity;
-        newQuantity = oldQuantity + 1;
+        newQuantity = product.cartItem.quantity + 1;
         return product;
       }
       return Product.findByPk(prodId);
@@ -130,7 +120,7 @@ exports.postCart = (req, res, next) => {
 
 exports.postCartDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
-  req.user
+  req.session.user
     .getCart()
     .then((cart) => {
       return cart.getProducts({ where: { id: prodId } });
@@ -147,14 +137,14 @@ exports.postCartDeleteProduct = (req, res, next) => {
 
 exports.postOrder = (req, res, next) => {
   let fetchedCart;
-  req.user
+  req.session.user
     .getCart()
     .then((cart) => {
       fetchedCart = cart;
       return cart.getProducts();
     })
     .then((products) => {
-      return req.user
+      return req.session.user
         .createOrder()
         .then((order) => {
           order.addProduct(
@@ -165,9 +155,6 @@ exports.postOrder = (req, res, next) => {
           );
         })
         .catch((err) => console.log(err));
-    })
-    .then((result) => {
-      res.redirect('/orders');
     })
     .then(() => {
       return fetchedCart.setProducts(null);
@@ -180,14 +167,14 @@ exports.postOrder = (req, res, next) => {
 
 // TODO: ORDERS //
 exports.getOrders = (req, res, next) => {
-  req.user
+  req.session.user
     .getOrders({ include: ['products'] })
     .then((orders) => {
       res.render('shop/orders', {
         docTitle: 'Your Orders',
         path: '/orders',
         orders: orders,
-        isAuthenticated: req.cookies.isLoggedIn === 'true',
+        isAuthenticated: req.session.isLoggedIn,
       }); // sending a response to the client
     })
     .catch((err) => console.log(err));
