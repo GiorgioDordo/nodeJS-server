@@ -19,10 +19,11 @@ exports.getLogin = (req, res, next) => {
 
   // console.log('Extracted isLoggedIn:', isLoggedIn);
   console.log('COOKIE VALUE: =>', req.cookies);
+  console.log(Boolean(req.cookies.isLoggedIn));
   res.render('auth/login', {
     docTitle: 'Login',
     path: '/login',
-    isAuthenticated: Boolean(req.cookies.isLoggedIn),
+    isAuthenticated: req.cookies.isLoggedIn === 'true',
   }); // sending a response to the client
 };
 
