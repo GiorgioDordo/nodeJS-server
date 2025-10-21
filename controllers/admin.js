@@ -5,6 +5,7 @@ exports.getAddProduct = (req, res, next) => {
     docTitle: 'Add Product',
     path: '/admin/add-product',
     editing: false,
+    isAuthenticated: Boolean(req.cookies.isLoggedIn),
   }); // sending a response to the client
 };
 
@@ -55,6 +56,7 @@ exports.getEditProduct = (req, res, next) => {
         path: '/admin/edit-product',
         editing: editMode,
         product: product,
+        isAuthenticated: Boolean(req.cookies.isLoggedIn),
       });
     })
     .catch((err) => {
@@ -108,6 +110,7 @@ exports.getAdminProducts = (req, res, next) => {
         prods: products,
         docTitle: 'Admin Products',
         path: '/admin/products',
+        isAuthenticated: Boolean(req.cookies.isLoggedIn),
       });
     })
     .catch((err) => {
