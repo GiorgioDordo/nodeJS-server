@@ -3,7 +3,9 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const express = require('express');
 const session = require('express-session');
+const cookieParser = require('cookie-parser');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
+const { doubleCsrf: csrf } = require('csrf-csrf');
 
 // importing controllers and routes
 const errorPage = require('./controllers/404.js');
@@ -20,14 +22,21 @@ const CartItem = require('./models/cart-item.js');
 const Order = require('./models/order.js');
 const OrderItem = require('./models/order-item.js');
 
+const sessionStore = new SequelizeStore({
+  db: sequelize,
+});
+
+const csrfProtection = csrf({
+  getSecret: () => 'supersecret',
+  getTokenFromRequest: (req) => req.body._csrf,
+  // __HOST and __SECURE are blocked in chrome, change name
+  cookieName: '__APP-psfi.x-csrf-token',
+});
+
 const app = express();
 
 app.set('view engine', 'ejs'); // setting the template engine
 app.set('views', 'views'); // setting the views directory
-
-const sessionStore = new SequelizeStore({
-  db: sequelize,
-});
 
 app.use(
   session({
@@ -38,17 +47,12 @@ app.use(
   })
 );
 
-// app.use(
-//   session({
-//     secret: 'my secret',
-//     resave: false,
-//     saveUninitialized: false,
-//   })
-// ); // setting up session management
+app.use(cookieParser('supersecret'));
+app.use(csrfProtection.doubleCsrfProtection);
 
 // urlencoded register a middleware like the one we created below and add next() to it so that the request can continue to the next middleware and it also parses the incoming request body and makes it available under req.body
 // it can't parse json data, for that we need to use bodyParser.json() and it can't parse files, for that we need to use multer package
-app.use(bodyParser.urlencoded({ extended: false })); // I should pass the config options as an object and set extended to false so that I can only parse simple data types like strings and arrays
+app.use(express.urlencoded({ extended: false })); // I should pass the config options as an object and set extended to false so that I can only parse simple data types like strings and arrays
 
 app.use(express.static(path.join(__dirname, 'public'))); // serving static files like css, images, js files
 
@@ -98,31 +102,6 @@ sequelize
   .sync({ force: false })
   .then(() => {
     return sessionStore.sync();
-  })
-  .then((result) => {
-    console.log('result avvio', result);
-    return User.findByPk(1);
-  })
-  .then((user) => {
-    if (!user) {
-      return User.create({ name: 'Dummy', email: 'test@dummy.com' });
-    }
-
-    return user; // Add this return!
-  })
-  .then((user) => {
-    console.log('Avvio user', user);
-    console.log('User methods:', Object.getOwnPropertyNames(user.__proto__));
-    return user.getCart().then((cart) => {
-      if (cart) {
-        return cart;
-      }
-      return user.createCart();
-    });
-  })
-  .then((cart) => {
-    console.log(cart);
-    console.log('Cart methods:', Object.getOwnPropertyNames(cart.__proto__));
   })
   .then(() => {
     console.log('Session store synced');
