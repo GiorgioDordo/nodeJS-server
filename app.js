@@ -22,6 +22,8 @@ const CartItem = require('./models/cart-item.js');
 const Order = require('./models/order.js');
 const OrderItem = require('./models/order-item.js');
 
+const app = express();
+
 const sessionStore = new SequelizeStore({
   db: sequelize,
 });
@@ -33,14 +35,15 @@ const csrfProtection = csrf({
   cookieName: '__APP-psfi.x-csrf-token',
 });
 
-const app = express();
-
 app.set('view engine', 'ejs'); // setting the template engine
 app.set('views', 'views'); // setting the views directory
 
+app.use(express.urlencoded({ extended: false }));
+app.use(express.static(path.join(__dirname, 'public')));
+
 app.use(
   session({
-    secret: 'your-secret-key-here',
+    secret: 'my secret',
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
@@ -50,11 +53,19 @@ app.use(
 app.use(cookieParser('supersecret'));
 app.use(csrfProtection.doubleCsrfProtection);
 
-// urlencoded register a middleware like the one we created below and add next() to it so that the request can continue to the next middleware and it also parses the incoming request body and makes it available under req.body
-// it can't parse json data, for that we need to use bodyParser.json() and it can't parse files, for that we need to use multer package
-app.use(express.urlencoded({ extended: false })); // I should pass the config options as an object and set extended to false so that I can only parse simple data types like strings and arrays
-
-app.use(express.static(path.join(__dirname, 'public'))); // serving static files like css, images, js files
+app.use((req, res, next) => {
+  if (req.method === 'POST') {
+    console.log('=== DETAILED CSRF DEBUG ===');
+    console.log('Session ID:', req.sessionID);
+    console.log('Body token:', req.body._csrf);
+    console.log('Cookies:', req.cookies); // Should not be undefined now
+    console.log(
+      'CSRF Cookie:',
+      req.cookies && req.cookies['__APP-psfi.x-csrf-token']
+    );
+  }
+  next();
+});
 
 app.use((req, res, next) => {
   console.log('=== MIDDLEWARE DEBUG ===');
@@ -76,6 +87,12 @@ app.use((req, res, next) => {
       console.log(err);
       next();
     });
+});
+
+app.use((req, res, next) => {
+  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.csrfToken = req.csrfToken();
+  next();
 });
 
 // ** DEFINING RELATIONS BETWEEN TABLES

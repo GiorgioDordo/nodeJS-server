@@ -11,7 +11,6 @@ exports.getProducts = (req, res, next) => {
         docTitle: 'All Products',
         path: '/products',
         isAuthenticated: req.session.isLoggedIn,
-        csrf: req.csrfToken(),
       });
     })
     .catch((err) => {
