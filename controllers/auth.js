@@ -82,7 +82,11 @@ exports.postSignup = (req, res, next) => {
 
 exports.postLogout = (req, res, next) => {
   req.session.destroy((err) => {
-    console.log(err);
+    if (err) {
+      console.log(err);
+    }
+    res.clearCookie('__APP-psfi.x-csrf-token');
+    res.clearCookie('x-csrf-token');
     res.redirect('/');
   });
 };

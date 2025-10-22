@@ -5,7 +5,7 @@
 
   <body>
     <%- include('../partials/navigation.ejs') %>
-
+<p>CSRF Token: <%= csrfToken %></p>
     <main>
       <form action="/login" class="login-form" method="POST">
         <div class="form-control">
@@ -17,5 +17,7 @@
           <input type="password" id="password" name="password" />
         </div>
         <button type="submit" class="btn">Login</button>
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+      </form>
     </main>
 <%- include('../partials/end.ejs') %>

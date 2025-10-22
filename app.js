@@ -1,6 +1,6 @@
 // importing the http module that we need to create a server
 const path = require('path');
-const bodyParser = require('body-parser');
+// const bodyParser = require('body-parser');
 const express = require('express');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
@@ -30,7 +30,7 @@ const sessionStore = new SequelizeStore({
 
 const csrfProtection = csrf({
   getSecret: () => 'supersecret',
-  getTokenFromRequest: (req) => req.body._csrf,
+  getTokenFromRequest: (req) => req.body.csrfToken,
   // __HOST and __SECURE are blocked in chrome, change name
   cookieName: '__APP-psfi.x-csrf-token',
 });
@@ -44,9 +44,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(
   session({
     secret: 'my secret',
-    store: sessionStore,
     resave: false,
     saveUninitialized: false,
+    store: sessionStore,
   })
 );
 
@@ -55,24 +55,25 @@ app.use(csrfProtection.doubleCsrfProtection);
 
 app.use((req, res, next) => {
   if (req.method === 'POST') {
-    console.log('=== DETAILED CSRF DEBUG ===');
+    console.log('=== CSRF DEBUG ===');
+    console.log('URL:', req.url);
     console.log('Session ID:', req.sessionID);
-    console.log('Body token:', req.body._csrf);
-    console.log('Cookies:', req.cookies); // Should not be undefined now
-    console.log(
-      'CSRF Cookie:',
-      req.cookies && req.cookies['__APP-psfi.x-csrf-token']
-    );
+    console.log('Body token:', req.body.csrfToken);
+    console.log('Cookie token:', req.cookies['x-csrf-token']);
+    console.log('Headers:', req.headers['x-csrf-token']);
   }
+
+  if (req.method === 'GET') {
+    console.log('=== GET REQUEST DEBUG ===');
+    console.log('URL:', req.url);
+    console.log('Session ID:', req.sessionID);
+    console.log('Cookie exists:', !!req.cookies['x-csrf-token']);
+  }
+
   next();
 });
 
 app.use((req, res, next) => {
-  console.log('=== MIDDLEWARE DEBUG ===');
-  console.log('Session exists:', !!req.session);
-  console.log('Session.user exists:', !!req.session.user);
-  console.log('Session.user value:', req.session.user);
-  console.log('Session.isLoggedIn:', req.session.isLoggedIn);
   if (!req.session.user) {
     return next();
   }
@@ -91,7 +92,7 @@ app.use((req, res, next) => {
 
 app.use((req, res, next) => {
   res.locals.isAuthenticated = req.session.isLoggedIn;
-  res.locals.csrfToken = req.csrfToken();
+  res.locals.csrfToken = csrfProtection.generateToken(req, res);
   next();
 });
 
@@ -114,6 +115,17 @@ app.use(authRoutes); // registering the auth routes
 
 // ** REDIRECTION 404
 app.use(errorPage.error404);
+
+// CSRF Error handler
+app.use((err, req, res, next) => {
+  if (err.code === 'EBADCSRFTOKEN') {
+    console.log('CSRF Token Error:', err);
+    return res
+      .status(403)
+      .send('Invalid CSRF token. Please refresh the page and try again.');
+  }
+  next(err);
+});
 
 sequelize
   .sync({ force: false })

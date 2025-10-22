@@ -15,6 +15,7 @@
                             <form action="/cart-delete-item" method="POST">
                                 <input type="hidden" value="<%= p.id %>" name="productId">
                                 <button class="btn danger" type="submit">Delete</button>
+                                            <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
                             </form>
                         </li>
                     <% }) %>
