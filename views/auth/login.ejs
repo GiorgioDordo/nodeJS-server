@@ -1,12 +1,15 @@
 <%- include('../partials/head.ejs') %>
     <link rel="stylesheet" href="/css/forms.css">
     <link rel="stylesheet" href="/css/auth.css">
+    <link rel="stylesheet" href="/css/errorMessage.css">
   </head>
 
   <body>
     <%- include('../partials/navigation.ejs') %>
-<p>CSRF Token: <%= csrfToken %></p>
     <main>
+        <% if (errorMessage) { %>
+    <p class="error-message"><%= errorMessage %></p>
+  <% } %>
       <form action="/login" class="login-form" method="POST">
         <div class="form-control">
           <label for="email">Email</label>

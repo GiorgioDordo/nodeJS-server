@@ -1,0 +1,34 @@
+.error-message {
+  background: linear-gradient(135deg, #fff1f0 0%, #ffe7e6 100%);
+  border-left: 4px solid #ff4d4f;
+  color: #cf1322;
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin: 0 auto 16px auto; /* Center horizontally */
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(207, 19, 34, 0.1);
+  animation: slideDown 0.3s ease-out;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content; /* Shrinks to content size */
+  max-width: 100%; /* Doesn't exceed parent */
+}
+
+.error-message::before {
+  content: '⚠';
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

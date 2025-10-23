@@ -1,12 +1,16 @@
 <%- include('../partials/head.ejs') %>
     <link rel="stylesheet" href="/css/forms.css">
     <link rel="stylesheet" href="/css/auth.css">
+    <link rel="stylesheet" href="/css/errorMessage.css">
 </head>
 
 <body>
    <%- include('../partials/navigation.ejs') %>
 
     <main>
+        <% if (errorMessage) { %>
+            <p class="error-message"><%= errorMessage %></p>
+        <% } %>
         <form class="login-form" action="/signup" method="POST">
             <div class="form-control">
                 <label for="email">E-Mail</label>

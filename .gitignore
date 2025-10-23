@@ -1,3 +1,6 @@
 node_modules/
 .vscode/
 utility/database.js
+.env
+apiKey.txt
+smtpKey.txt

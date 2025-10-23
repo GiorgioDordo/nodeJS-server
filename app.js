@@ -1,3 +1,4 @@
+require('dotenv').config();
 // importing the http module that we need to create a server
 const path = require('path');
 // const bodyParser = require('body-parser');
@@ -6,6 +7,7 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
 const { doubleCsrf: csrf } = require('csrf-csrf');
+const flash = require('@codecorn/connect-flash-new');
 
 // importing controllers and routes
 const errorPage = require('./controllers/404.js');
@@ -52,6 +54,8 @@ app.use(
 
 app.use(cookieParser('supersecret'));
 app.use(csrfProtection.doubleCsrfProtection);
+
+app.use(flash());
 
 app.use((req, res, next) => {
   if (req.method === 'POST') {
