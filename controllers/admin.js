@@ -65,26 +65,18 @@ exports.postEditProduct = (req, res, next) => {
   const updatedPrice = req.body.price;
   const updatedDesc = req.body.description;
   const updatedAt = new Date();
-  Product.update(
-    {
-      title: updatedTitle,
-      price: updatedPrice,
-      description: updatedDesc,
-      imageUrl: updatedImageUrl,
-    },
-    {
-      where: { id: prodId },
-    }
-  )
-    // Product.findByPk(prodId)
-    //   .then((product) => {
-    //     product.title = updatedTitle;
-    //     product.price = updatedPrice;
-    //     product.description = updatedDesc;
-    //     product.imageUrl = updatedImageUrl;
-    //     product.updatedAt = updatedAt;
-    //     return product.save();
-    //   })
+  Product.findByPk(prodId)
+    .then((product) => {
+      if (product.userId !== req.session.user.id) {
+        return res.redirect('/');
+      }
+      product.title = updatedTitle;
+      product.price = updatedPrice;
+      product.description = updatedDesc;
+      product.imageUrl = updatedImageUrl;
+      product.updatedAt = updatedAt;
+      return product.save();
+    })
     .then((result) => {
       console.log(result, 'Updated Product');
       res.redirect('/admin/products');
@@ -97,7 +89,7 @@ exports.postEditProduct = (req, res, next) => {
 
 // TODO: ADMIN PRODUCTS //
 exports.getAdminProducts = (req, res, next) => {
-  Product.findAll()
+  Product.findAll({ where: { userId: req.session.user.id } })
     .then((products) => {
       console.log('admin/products.js');
       res.render('admin/products', {
@@ -116,7 +108,7 @@ exports.getAdminProducts = (req, res, next) => {
 exports.postDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
   Product.destroy({
-    where: { id: prodId },
+    where: { id: prodId, userId: req.session.user.id },
   })
     .then(() => {
       console.log('Deleted Product');
