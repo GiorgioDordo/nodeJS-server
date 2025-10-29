@@ -1,5 +1,6 @@
 const Product = require('../models/product.js');
 const { validationResult } = require('express-validator');
+const errorHandler = require('../utility/error-handler.js');
 
 exports.getAddProduct = (req, res, next) => {
   // if (!req.session.isLoggedIn) {
@@ -41,6 +42,7 @@ exports.postAddProduct = (req, res, next) => {
   }
 
   Product.create({
+    id: 1,
     title: title,
     price: price,
     description: description,
@@ -51,7 +53,9 @@ exports.postAddProduct = (req, res, next) => {
       console.log('Created Product');
       res.redirect('/admin/products');
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      errorHandler.error500(err, next);
+    });
 };
 
 exports.getEditProduct = (req, res, next) => {
@@ -77,7 +81,7 @@ exports.getEditProduct = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err);
+      errorHandler.error500(err, next);
     });
 };
 
@@ -99,7 +103,6 @@ exports.postEditProduct = (req, res, next) => {
       editing: true,
       hasError: true,
       product: {
-        id: prodId,
         title: updatedTitle,
         imageUrl: updatedImageUrl,
         price: updatedPrice,
@@ -127,7 +130,7 @@ exports.postEditProduct = (req, res, next) => {
       res.redirect('/admin/products');
     })
     .catch((err) => {
-      console.log(err);
+      errorHandler.error500(err, next);
     });
   // res.send(`<h1>Product: ${product}</h1>`); // sending a response to the client
 };
@@ -144,7 +147,7 @@ exports.getAdminProducts = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err);
+      errorHandler.error500(err, next);
     });
 };
 
@@ -159,6 +162,6 @@ exports.postDeleteProduct = (req, res, next) => {
       res.redirect('/admin/products');
     })
     .catch((err) => {
-      console.log(err);
+      errorHandler.error500(err, next);
     });
 };

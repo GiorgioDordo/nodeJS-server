@@ -4,6 +4,7 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const { Op } = require('sequelize');
 const { validationResult } = require('express-validator');
+const errorHandler = require('../utility/error-handler.js');
 
 // Remove brevoTransport, use direct SMTP instead
 function getTransporter() {
@@ -12,7 +13,7 @@ function getTransporter() {
     port: 587,
     secure: false,
     auth: {
-      user: process.env.SMTP_USER, // Your email
+      user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS, // Your SMTP key (not API key!)
     },
   });
@@ -25,15 +26,19 @@ exports.getLogin = (req, res, next) => {
   } else {
     message = null;
   }
-  res.render('auth/login', {
-    path: '/login',
-    docTitle: 'Login',
-    errorMessage: message,
-    oldInput: {
-      email: '',
-    },
-    validationErrors: [],
-  });
+  res
+    .render('auth/login', {
+      path: '/login',
+      docTitle: 'Login',
+      errorMessage: message,
+      oldInput: {
+        email: '',
+      },
+      validationErrors: [],
+    })
+    .catch((err) => {
+      errorHandler.error500(err, next);
+    });
 };
 
 exports.getSignup = (req, res, next) => {
@@ -43,15 +48,19 @@ exports.getSignup = (req, res, next) => {
   } else {
     messageSignup = null;
   }
-  res.render('auth/signup', {
-    path: '/signup',
-    docTitle: 'Signup',
-    errorMessage: messageSignup,
-    oldInput: {
-      email: '',
-    },
-    validationErrors: [],
-  });
+  res
+    .render('auth/signup', {
+      path: '/signup',
+      docTitle: 'Signup',
+      errorMessage: messageSignup,
+      oldInput: {
+        email: '',
+      },
+      validationErrors: [],
+    })
+    .catch((err) => {
+      errorHandler.error500(err, next);
+    });
 };
 
 exports.postLogin = (req, res, next) => {
@@ -111,7 +120,9 @@ exports.postLogin = (req, res, next) => {
           return res.redirect('/login'); // Passwords don't match, redirect and stop
         });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      errorHandler.error500(err, next);
+    });
 };
 
 exports.postSignup = (req, res, next) => {
@@ -183,20 +194,23 @@ exports.postSignup = (req, res, next) => {
         });
     })
     .catch((err) => {
-      console.log(err);
-      res.redirect('/signup');
+      errorHandler.error500(err, next);
     });
 };
 
 exports.postLogout = (req, res, next) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.log(err);
-    }
-    res.clearCookie('__APP-psfi.x-csrf-token');
-    // res.clearCookie('x-csrf-token');
-    res.redirect('/');
-  });
+  req.session
+    .destroy((err) => {
+      if (err) {
+        console.log(err);
+      }
+      res.clearCookie('__APP-psfi.x-csrf-token');
+      // res.clearCookie('x-csrf-token');
+      res.redirect('/');
+    })
+    .catch((err) => {
+      errorHandler.error500(err, next);
+    });
 };
 
 exports.getReset = (req, res, next) => {
@@ -206,11 +220,15 @@ exports.getReset = (req, res, next) => {
   } else {
     message = null;
   }
-  res.render('auth/reset', {
-    path: '/reset',
-    docTitle: 'Reset Password',
-    errorMessage: message,
-  });
+  res
+    .render('auth/reset', {
+      path: '/reset',
+      docTitle: 'Reset Password',
+      errorMessage: message,
+    })
+    .catch((err) => {
+      errorHandler.error500(err, next);
+    });
 };
 
 exports.postReset = (req, res, next) => {
@@ -257,7 +275,7 @@ exports.postReset = (req, res, next) => {
         });
       })
       .catch((err) => {
-        console.log(err);
+        errorHandler.error500(err, next);
       });
   });
 };
@@ -283,7 +301,7 @@ exports.getNewPassword = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err);
+      errorHandler.error500(err, next);
     });
 };
 
@@ -326,6 +344,6 @@ exports.postNewPassword = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err);
+      errorHandler.error500(err, next);
     });
 };

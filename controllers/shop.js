@@ -13,7 +13,7 @@ exports.getProducts = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err);
+      errorHandler.error500(err, next);
     });
 };
 
@@ -28,7 +28,7 @@ exports.getIndex = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err);
+      errorHandler.error500(err, next);
     });
 };
 
@@ -45,25 +45,33 @@ exports.getProduct = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err);
+      errorHandler.error500(err, next);
     });
 };
 
 // TODO: CART //
 exports.getCart = (req, res, next) => {
-  req.session.user.getCart().then((cart) => {
-    console.log('CART', cart);
-    return cart
-      .getProducts()
-      .then((products) => {
-        res.render('shop/cart', {
-          docTitle: 'Your Cart',
-          path: '/cart',
-          products: products,
+  req.session.user
+    .getCart()
+    .then((cart) => {
+      console.log('CART', cart);
+      return cart
+        .getProducts()
+        .then((products) => {
+          res.render('shop/cart', {
+            docTitle: 'Your Cart',
+            path: '/cart',
+            products: products,
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+          return res.redirect('/products');
         });
-      })
-      .catch((err) => console.log(err));
-  });
+    })
+    .catch((err) => {
+      errorHandler.error500(err, next);
+    });
 };
 
 exports.postCart = (req, res, next) => {
@@ -93,7 +101,9 @@ exports.postCart = (req, res, next) => {
     .then(() => {
       res.redirect('/cart');
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      errorHandler.error500(err, next);
+    });
 };
 
 exports.postCartDeleteProduct = (req, res, next) => {
@@ -110,7 +120,9 @@ exports.postCartDeleteProduct = (req, res, next) => {
     .then((result) => {
       res.redirect('/cart');
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      errorHandler.error500(err, next);
+    });
 };
 
 exports.postOrder = (req, res, next) => {
@@ -140,7 +152,9 @@ exports.postOrder = (req, res, next) => {
     .then(() => {
       res.redirect('/orders');
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      errorHandler.error500(err, next);
+    });
 };
 
 // TODO: ORDERS //
@@ -154,5 +168,7 @@ exports.getOrders = (req, res, next) => {
         orders: orders,
       }); // sending a response to the client
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      errorHandler.error500(err, next);
+    });
 };

@@ -23,6 +23,7 @@ const Cart = require('./models/cart.js');
 const CartItem = require('./models/cart-item.js');
 const Order = require('./models/order.js');
 const OrderItem = require('./models/order-item.js');
+const { error } = require('console');
 
 const app = express();
 
@@ -85,12 +86,16 @@ app.use((req, res, next) => {
   // Fetch fresh user from database to get Sequelize methods
   User.findByPk(req.session.user.id)
     .then((user) => {
+      if (!user) {
+        return next();
+      }
       req.session.user = user; // Replace the plain object with Sequelize instance
       next();
     })
     .catch((err) => {
-      console.log(err);
-      next();
+      throw new Error(err);
+      // console.log(err);
+      // next();
     });
 });
 
@@ -117,8 +122,14 @@ app.use('/admin', adminRoutes.router); // registering the admin routes\
 app.use(shopRoutes.router); // registering the shop routes
 app.use(authRoutes); // registering the auth routes
 
+// ** REDIRECTION 500
+app.get('/500', errorPage.error500);
+
 // ** REDIRECTION 404
-app.use(errorPage.error404);
+app.use((err, req, res, next) => {
+  console.log('Error caught:', err);
+  errorPage.error500(req, res, next); // Call your controller function
+});
 
 // CSRF Error handler
 app.use((err, req, res, next) => {

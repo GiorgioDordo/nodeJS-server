@@ -4,3 +4,11 @@ exports.error404 = (req, res, next) => {
     path: '',
   });
 };
+
+exports.error500 = (req, res, next) => {
+  res.status(500).render('500', {
+    docTitle: '500',
+    path: '/500',
+    isAuthenticated: req.session.isLoggedIn,
+  });
+};
