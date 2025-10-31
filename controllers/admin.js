@@ -19,7 +19,7 @@ exports.getAddProduct = (req, res, next) => {
 exports.postAddProduct = (req, res, next) => {
   console.log(req.body);
   const title = req.body.title;
-  const imageUrl = req.body.imageUrl;
+  const image = req.body.image;
   const description = req.body.description;
   const price = req.body.price;
   const errors = validationResult(req);
@@ -32,7 +32,7 @@ exports.postAddProduct = (req, res, next) => {
       hasError: true,
       product: {
         title: title,
-        imageUrl: imageUrl,
+        image: image,
         price: price,
         description: description,
       },
@@ -42,11 +42,10 @@ exports.postAddProduct = (req, res, next) => {
   }
 
   Product.create({
-    id: 1,
     title: title,
     price: price,
     description: description,
-    imageUrl: imageUrl,
+    image: image,
     userId: req.session.user.id,
   })
     .then((result) => {
@@ -88,7 +87,7 @@ exports.getEditProduct = (req, res, next) => {
 exports.postEditProduct = (req, res, next) => {
   const prodId = req.body.productId;
   const updatedTitle = req.body.title;
-  const updatedImageUrl = req.body.imageUrl;
+  const updatedImage = req.body.image;
   const updatedPrice = req.body.price;
   const updatedDesc = req.body.description;
   const updatedAt = new Date();
@@ -104,7 +103,7 @@ exports.postEditProduct = (req, res, next) => {
       hasError: true,
       product: {
         title: updatedTitle,
-        imageUrl: updatedImageUrl,
+        image: updatedImage,
         price: updatedPrice,
         description: updatedDesc,
       },
@@ -121,7 +120,7 @@ exports.postEditProduct = (req, res, next) => {
       product.title = updatedTitle;
       product.price = updatedPrice;
       product.description = updatedDesc;
-      product.imageUrl = updatedImageUrl;
+      product.image = updatedImage;
       product.updatedAt = updatedAt;
       return product.save();
     })

@@ -45,8 +45,6 @@ exports.passwordMatch = body('confirmPassword')
   });
 
 exports.checkAdminTitle = body('title').trim().isString().isLength({ min: 3 });
-
-exports.checkAdminImageUrl = body('imageUrl').isURL();
 exports.checkAdminPrice = body('price').isFloat();
 exports.checkAdminDescription = body('description')
   .trim()

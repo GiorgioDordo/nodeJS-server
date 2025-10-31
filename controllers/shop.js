@@ -3,18 +3,14 @@ const Cart = require('../models/cart.js');
 const Order = require('../models/order.js');
 
 exports.getProducts = (req, res, next) => {
-  Product.findAll()
-    .then((products) => {
-      console.log('shop/product-list.js');
-      res.render('shop/product-list', {
-        prods: products,
-        docTitle: 'All Products',
-        path: '/products',
-      });
-    })
-    .catch((err) => {
-      errorHandler.error500(err, next);
+  Product.findAll().then((products) => {
+    console.log('shop/product-list.js');
+    res.render('shop/product-list', {
+      prods: products,
+      docTitle: 'All Products',
+      path: '/products',
     });
+  });
 };
 
 exports.getIndex = (req, res, next) => {

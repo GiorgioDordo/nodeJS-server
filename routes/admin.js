@@ -19,7 +19,6 @@ router.post(
   isAuth,
   [
     validator.checkAdminTitle,
-    validator.checkAdminImageUrl,
     validator.checkAdminPrice,
     validator.checkAdminDescription,
   ],
@@ -35,7 +34,6 @@ router.post(
   isAuth,
   [
     validator.checkAdminTitle,
-    validator.checkAdminImageUrl,
     validator.checkAdminPrice,
     validator.checkAdminDescription,
   ],

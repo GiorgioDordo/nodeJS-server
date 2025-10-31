@@ -26,19 +26,15 @@ exports.getLogin = (req, res, next) => {
   } else {
     message = null;
   }
-  res
-    .render('auth/login', {
-      path: '/login',
-      docTitle: 'Login',
-      errorMessage: message,
-      oldInput: {
-        email: '',
-      },
-      validationErrors: [],
-    })
-    .catch((err) => {
-      errorHandler.error500(err, next);
-    });
+  res.render('auth/login', {
+    path: '/login',
+    docTitle: 'Login',
+    errorMessage: message,
+    oldInput: {
+      email: '',
+    },
+    validationErrors: [],
+  });
 };
 
 exports.getSignup = (req, res, next) => {
@@ -48,19 +44,15 @@ exports.getSignup = (req, res, next) => {
   } else {
     messageSignup = null;
   }
-  res
-    .render('auth/signup', {
-      path: '/signup',
-      docTitle: 'Signup',
-      errorMessage: messageSignup,
-      oldInput: {
-        email: '',
-      },
-      validationErrors: [],
-    })
-    .catch((err) => {
-      errorHandler.error500(err, next);
-    });
+  res.render('auth/signup', {
+    path: '/signup',
+    docTitle: 'Signup',
+    errorMessage: messageSignup,
+    oldInput: {
+      email: '',
+    },
+    validationErrors: [],
+  });
 };
 
 exports.postLogin = (req, res, next) => {
@@ -220,15 +212,11 @@ exports.getReset = (req, res, next) => {
   } else {
     message = null;
   }
-  res
-    .render('auth/reset', {
-      path: '/reset',
-      docTitle: 'Reset Password',
-      errorMessage: message,
-    })
-    .catch((err) => {
-      errorHandler.error500(err, next);
-    });
+  res.render('auth/reset', {
+    path: '/reset',
+    docTitle: 'Reset Password',
+    errorMessage: message,
+  });
 };
 
 exports.postReset = (req, res, next) => {
@@ -284,25 +272,21 @@ exports.getNewPassword = (req, res, next) => {
   const token = req.params.token;
   User.findOne({
     where: { resetToken: token, resetTokenExpiration: { [Op.gt]: Date.now() } },
-  })
-    .then((user) => {
-      let message = req.flash('error');
-      if (message.length > 0) {
-        message = message[0];
-      } else {
-        message = null;
-      }
-      res.render('auth/new-password', {
-        path: '/new-password',
-        docTitle: 'New Password',
-        errorMessage: message,
-        userId: user.id.toString(),
-        passwordToken: token,
-      });
-    })
-    .catch((err) => {
-      errorHandler.error500(err, next);
+  }).then((user) => {
+    let message = req.flash('error');
+    if (message.length > 0) {
+      message = message[0];
+    } else {
+      message = null;
+    }
+    res.render('auth/new-password', {
+      path: '/new-password',
+      docTitle: 'New Password',
+      errorMessage: message,
+      userId: user.id.toString(),
+      passwordToken: token,
     });
+  });
 };
 
 exports.postNewPassword = (req, res, next) => {

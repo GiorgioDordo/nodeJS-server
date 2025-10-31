@@ -1,7 +1,7 @@
 require('dotenv').config();
 // importing the http module that we need to create a server
 const path = require('path');
-// const bodyParser = require('body-parser');
+const bodyParser = require('body-parser');
 const express = require('express');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
@@ -41,7 +41,7 @@ const csrfProtection = csrf({
 app.set('view engine', 'ejs'); // setting the template engine
 app.set('views', 'views'); // setting the views directory
 
-app.use(express.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(
