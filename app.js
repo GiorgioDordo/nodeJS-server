@@ -140,8 +140,14 @@ Cart.belongsToMany(Product, { through: CartItem });
 Product.belongsToMany(Cart, { through: CartItem });
 Order.belongsTo(User);
 User.hasMany(Order);
-Order.belongsToMany(Product, { through: OrderItem });
-Product.belongsToMany(Order, { through: OrderItem });
+Order.belongsToMany(Product, {
+  through: OrderItem,
+  constraints: false,
+});
+Product.belongsToMany(Order, {
+  through: OrderItem,
+  constraints: false,
+});
 
 //**MY ROUTES */
 app.use('/admin', adminRoutes.router); // registering the admin routes\

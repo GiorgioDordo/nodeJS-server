@@ -1,6 +1,7 @@
 const Product = require('../models/product.js');
 const { validationResult } = require('express-validator');
 const errorHandler = require('../utility/error-handler.js');
+const fileHelper = require('../utility/file.js');
 
 exports.getAddProduct = (req, res, next) => {
   // if (!req.session.isLoggedIn) {
@@ -144,6 +145,7 @@ exports.postEditProduct = (req, res, next) => {
       product.price = updatedPrice;
       product.description = updatedDesc;
       if (updatedImage) {
+        fileHelper.deleteFile(product.image);
         product.image = updatedImage.path;
       }
       product.updatedAt = updatedAt;
@@ -178,9 +180,16 @@ exports.getAdminProducts = (req, res, next) => {
 // TODO: DELETE PRODUCT //
 exports.postDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
-  Product.destroy({
-    where: { id: prodId, userId: req.session.user.id },
-  })
+  Product.findByPk(prodId)
+    .then((product) => {
+      if (!product) {
+        return next(new Error('Product not found.'));
+      }
+      fileHelper.deleteFile(product.image);
+      return Product.destroy({
+        where: { id: prodId, userId: req.session.user.id },
+      });
+    })
     .then(() => {
       console.log('Deleted Product');
       res.redirect('/admin/products');

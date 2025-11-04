@@ -1,8 +1,10 @@
 const Product = require('../models/product.js');
 const Cart = require('../models/cart.js');
 const Order = require('../models/order.js');
+const OrderItem = require('../models/order-item.js');
 const fs = require('fs');
 const path = require('path');
+const PDFDocument = require('pdfkit');
 
 exports.getProducts = (req, res, next) => {
   Product.findAll().then((products) => {
@@ -132,12 +134,28 @@ exports.postOrder = (req, res, next) => {
       return cart.getProducts();
     })
     .then((products) => {
+      console.log('=== CREATING ORDER ===');
+      products.forEach((p) => {
+        console.log('Product:', {
+          id: p.id,
+          title: p.title,
+          price: p.price,
+          image: p.image,
+          quantity: p.cartItem.quantity,
+        });
+      });
       return req.session.user
         .createOrder()
         .then((order) => {
-          order.addProduct(
+          return order.addProducts(
             products.map((product) => {
-              product.orderItem = { quantity: product.cartItem.quantity };
+              product.orderItem = {
+                quantity: product.cartItem.quantity,
+                title: product.title,
+                price: product.price,
+                imageUrl: product.image,
+              };
+              console.log('OrderItem data:', product.orderItem);
               return product;
             })
           );
@@ -151,6 +169,7 @@ exports.postOrder = (req, res, next) => {
       res.redirect('/orders');
     })
     .catch((err) => {
+      console.error('Order creation error:', err);
       errorHandler.error500(err, next);
     });
 };
@@ -173,18 +192,72 @@ exports.getOrders = (req, res, next) => {
 
 exports.getInvoice = (req, res, next) => {
   const orderId = req.params.orderId;
-  const invoiceName = 'invoice-' + orderId + '.pdf';
-  const invoicePath = path.join('data', 'invoices', invoiceName);
 
-  fs.readFile(invoicePath, (err, data) => {
-    if (err) {
+  Order.findByPk(orderId)
+    .then((order) => {
+      console.log('=== ORDER DEBUG ===');
+      console.log('Order:', order);
+      console.log('Order products:', order?.products);
+      console.log('Order keys:', Object.keys(order || {}));
+      if (!order) {
+        return next(new Error('No order found.'));
+      }
+      if (order.userId.toString() !== req.session.user.id.toString()) {
+        return next(new Error('Unauthorized'));
+      }
+
+      // Get OrderItems directly - they have all the snapshot data!
+      return OrderItem.findAll({
+        where: { orderId: orderId },
+      }).then((orderItems) => ({ order, orderItems }));
+    })
+    .then(({ order, orderItems }) => {
+      if (!orderItems || orderItems.length === 0) {
+        return next(new Error('No items in this order.'));
+      }
+
+      console.log('=== ORDER ITEMS ===');
+      orderItems.forEach((item) => {
+        console.log('Item:', {
+          title: item.title,
+          price: item.price,
+          quantity: item.quantity,
+        });
+      });
+
+      const invoiceName = 'invoice-' + orderId + '.pdf';
+      const invoicePath = path.join('data', 'invoices', invoiceName);
+
+      const pdfDoc = new PDFDocument();
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        'inline; filename="' + invoiceName + '"'
+      );
+      pdfDoc.pipe(fs.createWriteStream(invoicePath));
+      pdfDoc.pipe(res);
+
+      pdfDoc.fontSize(26).text('Invoice');
+      pdfDoc.text('-----------------------');
+      let totalPrice = 0;
+      orderItems.forEach((item) => {
+        const title = item.title || '[Unknown Product]';
+        const price = item.price || 0;
+        const quantity = item.quantity || 0;
+
+        totalPrice = totalPrice + price * quantity;
+        pdfDoc.text(title + ' - ' + quantity + ' x ' + '$' + price);
+      });
+
+      pdfDoc.text('Total Price: $' + totalPrice);
+
+      pdfDoc.end();
+
+      // const file = fs.createReadStream(invoicePath);
+
+      // file.pipe(res);
+    })
+    .catch((err) => {
       return next(err);
-    }
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader(
-      'Content-Disposition',
-      'inline; filename="' + invoiceName + '"'
-    );
-    res.send(data);
-  });
+    });
 };

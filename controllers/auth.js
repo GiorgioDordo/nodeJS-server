@@ -191,18 +191,14 @@ exports.postSignup = (req, res, next) => {
 };
 
 exports.postLogout = (req, res, next) => {
-  req.session
-    .destroy((err) => {
-      if (err) {
-        console.log(err);
-      }
-      res.clearCookie('__APP-psfi.x-csrf-token');
-      // res.clearCookie('x-csrf-token');
-      res.redirect('/');
-    })
-    .catch((err) => {
-      errorHandler.error500(err, next);
-    });
+  req.session.destroy((err) => {
+    if (err) {
+      console.log(err);
+    }
+    res.clearCookie('__APP-psfi.x-csrf-token');
+    // res.clearCookie('x-csrf-token');
+    res.redirect('/');
+  });
 };
 
 exports.getReset = (req, res, next) => {
