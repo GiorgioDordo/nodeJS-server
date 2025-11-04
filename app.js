@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
 const { doubleCsrf: csrf } = require('csrf-csrf');
 const flash = require('@codecorn/connect-flash-new');
+const multer = require('multer');
 
 // importing controllers and routes
 const errorPage = require('./controllers/404.js');
@@ -38,11 +39,36 @@ const csrfProtection = csrf({
   cookieName: '__APP-psfi.x-csrf-token',
 });
 
+// i cant't use new Date().toISOString() in filename because of special characters like :, those are invalid characters in windows filenames
+// Date.now() gives a timestamp of millisecond that have passed since January 1 1970, which is valid
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'images');
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + file.originalname);
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === 'image/png' ||
+    file.mimetype === 'image/jpg' ||
+    file.mimetype === 'image/jpeg'
+  ) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+
 app.set('view engine', 'ejs'); // setting the template engine
 app.set('views', 'views'); // setting the views directory
 
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(multer({ storage: fileStorage, fileFilter }).single('image'));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 app.use(
   session({
@@ -64,7 +90,7 @@ app.use((req, res, next) => {
     console.log('URL:', req.url);
     console.log('Session ID:', req.sessionID);
     console.log('Body token:', req.body.csrfToken);
-    console.log('Cookie token:', req.cookies['x-csrf-token']);
+    console.log('Cookie token:', req.cookies['__APP-psfi.x-csrf-token']);
     console.log('Headers:', req.headers['x-csrf-token']);
   }
 
@@ -72,7 +98,7 @@ app.use((req, res, next) => {
     console.log('=== GET REQUEST DEBUG ===');
     console.log('URL:', req.url);
     console.log('Session ID:', req.sessionID);
-    console.log('Cookie exists:', !!req.cookies['x-csrf-token']);
+    console.log('Cookie exists:', !!req.cookies['__APP-psfi.x-csrf-token']);
   }
 
   next();

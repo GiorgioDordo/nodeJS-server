@@ -1,5 +1,6 @@
 
 <%- include('../partials/head.ejs') %>
+    <link rel="stylesheet" href="/css/orders.css">
   </head>
 
   <body>
@@ -15,7 +16,7 @@
                             <h1>Order - # <%= order.id %></h1>
                             <ul class="orders__products">
                                 <% order.products.forEach(p => { %>
-                                    <li class="orders__products-item"><%= p.title %> (<%= p.orderItem.quantity %>)</li>
+                                    <li class="orders__products-item"><%= p.title %> (<%= p.orderItem.quantity %>) - <a href="/orders/<%= order.id %>">Invoice</a></li>
                                 <% }); %>
                             </ul>
                         </li>
