@@ -5,6 +5,8 @@ const OrderItem = require('../models/order-item.js');
 const fs = require('fs');
 const path = require('path');
 const PDFDocument = require('pdfkit');
+const errorHandler = require('../utility/error-handler.js');
+const ITEMS_PER_PAGE = 2;
 
 exports.getProducts = (req, res, next) => {
   Product.findAll().then((products) => {
@@ -18,13 +20,34 @@ exports.getProducts = (req, res, next) => {
 };
 
 exports.getIndex = (req, res, next) => {
-  Product.findAll()
-    .then((products) => {
+  const page = parseInt(req.query.page) || 1;
+  console.log('PAGE:', page);
+  console.log('=== PAGINATION DEBUG ===');
+  console.log('req.query:', req.query);
+  console.log('req.query.page (raw):', req.query.page);
+  console.log('typeof req.query.page:', typeof req.query.page);
+  console.log('Full URL:', req.url);
+  console.log('Original URL:', req.originalUrl);
+
+  Product.findAndCountAll({
+    offset: (page - 1) * ITEMS_PER_PAGE,
+    limit: ITEMS_PER_PAGE,
+    order: [['createdAt', 'DESC']],
+  })
+    .then((result) => {
+      const totalItems = result.count;
+      const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
       console.log('shop/index.js');
       res.render('shop/index', {
-        prods: products,
+        prods: result.rows,
         docTitle: 'Shop',
         path: '/',
+        currentPage: page,
+        totalPages: totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+        nextPage: page + 1,
+        previousPage: page - 1,
       });
     })
     .catch((err) => {
