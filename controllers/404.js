@@ -12,3 +12,5 @@ exports.error500 = (req, res, next) => {
     isAuthenticated: req.session.isLoggedIn,
   });
 };
+
+// commento test webhook
