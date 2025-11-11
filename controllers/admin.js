@@ -2,6 +2,7 @@ const Product = require('../models/product.js');
 const { validationResult } = require('express-validator');
 const errorHandler = require('../utility/error-handler.js');
 const fileHelper = require('../utility/file.js');
+const ITEMS_PER_PAGE = 2;
 
 exports.getAddProduct = (req, res, next) => {
   // if (!req.session.isLoggedIn) {
@@ -163,13 +164,27 @@ exports.postEditProduct = (req, res, next) => {
 
 // TODO: ADMIN PRODUCTS //
 exports.getAdminProducts = (req, res, next) => {
-  Product.findAll({ where: { userId: req.session.user.id } })
-    .then((products) => {
+  const page = parseInt(req.query.page) || 1;
+  Product.findAndCountAll({
+    where: { userId: req.session.user.id },
+    offset: (page - 1) * ITEMS_PER_PAGE,
+    limit: ITEMS_PER_PAGE,
+    order: [['createdAt', 'DESC']],
+  })
+    .then((result) => {
+      const totalItems = result.count;
+      const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
       console.log('admin/products.js');
       res.render('admin/products', {
-        prods: products,
+        prods: result.rows,
         docTitle: 'Admin Products',
         path: '/admin/products',
+        currentPage: page,
+        totalPages: totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+        nextPage: page + 1,
+        previousPage: page - 1,
       });
     })
     .catch((err) => {

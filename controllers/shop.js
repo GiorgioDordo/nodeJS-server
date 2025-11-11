@@ -9,12 +9,24 @@ const errorHandler = require('../utility/error-handler.js');
 const ITEMS_PER_PAGE = 2;
 
 exports.getProducts = (req, res, next) => {
-  Product.findAll().then((products) => {
-    console.log('shop/product-list.js');
+  const page = parseInt(req.query.page) || 1;
+  Product.findAndCountAll({
+    offset: (page - 1) * ITEMS_PER_PAGE,
+    limit: ITEMS_PER_PAGE,
+    order: [['createdAt', 'DESC']],
+  }).then((result) => {
+    const totalItems = result.count;
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
     res.render('shop/product-list', {
-      prods: products,
+      prods: result.rows,
       docTitle: 'All Products',
       path: '/products',
+      currentPage: page,
+      totalPages: totalPages,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+      nextPage: page + 1,
+      previousPage: page - 1,
     });
   });
 };
