@@ -221,3 +221,4 @@ exports.postDeleteProduct = (req, res, next) => {
 // commento
 // comment
 // test per event sessione
+// test events in main
