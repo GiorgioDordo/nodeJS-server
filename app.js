@@ -1,32 +1,38 @@
 require('dotenv').config();
-// importing the http module that we need to create a server
+
+// 1. Core Modules
 const path = require('path');
-const bodyParser = require('body-parser');
+
+// 2. Third-Party Modules
 const express = require('express');
+const bodyParser = require('body-parser');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
-const SequelizeStore = require('connect-session-sequelize')(session.Store);
+const multer = require('multer');
 const { doubleCsrf: csrf } = require('csrf-csrf');
 const flash = require('@codecorn/connect-flash-new');
-const multer = require('multer');
+const SequelizeStore = require('connect-session-sequelize')(session.Store);
 
-// importing controllers and routes
-const errorPage = require('./controllers/404.js');
+// 3. Local Imports (Database, Models, Controllers)
 const sequelize = require('./utility/database.js');
+const errorPage = require('./controllers/404.js');
+
+// Routes
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
 const authRoutes = require('./routes/auth');
 
-// importing models
+// Models
 const Product = require('./models/product.js');
 const User = require('./models/user.js');
 const Cart = require('./models/cart.js');
 const CartItem = require('./models/cart-item.js');
 const Order = require('./models/order.js');
 const OrderItem = require('./models/order-item.js');
-const { error } = require('console');
 
 const app = express();
+
+// --- CONFIGURATION START ---
 
 const sessionStore = new SequelizeStore({
   db: sequelize,
@@ -34,13 +40,14 @@ const sessionStore = new SequelizeStore({
 
 const csrfProtection = csrf({
   getSecret: () => 'supersecret',
-  getTokenFromRequest: (req) => req.body.csrfToken,
-  // __HOST and __SECURE are blocked in chrome, change name
+  // Safe access using ?. to prevent crash if body is undefined
+  getTokenFromRequest: (req) =>
+    req.body?.csrfToken ||
+    req.headers['csrf-token'] ||
+    req.headers['x-csrf-token'],
   cookieName: '__APP-psfi.x-csrf-token',
 });
 
-// i cant't use new Date().toISOString() in filename because of special characters like :, those are invalid characters in windows filenames
-// Date.now() gives a timestamp of millisecond that have passed since January 1 1970, which is valid
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'images');
@@ -62,14 +69,20 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-app.set('view engine', 'ejs'); // setting the template engine
-app.set('views', 'views'); // setting the views directory
+app.set('view engine', 'ejs');
+app.set('views', 'views');
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(multer({ storage: fileStorage, fileFilter }).single('image'));
+// --- MIDDLEWARE PIPELINE START ---
+
+// 1. Static Files (Should come early so they don't trigger DB lookups)
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
+// 2. Parsers (Body & File)
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(multer({ storage: fileStorage, fileFilter }).single('image'));
+
+// 3. Session & Cookies
 app.use(
   session({
     secret: 'my secret',
@@ -78,60 +91,87 @@ app.use(
     store: sessionStore,
   })
 );
-
 app.use(cookieParser('supersecret'));
+
+// 4. Security (CSRF) - Must come after cookie/body parsers
 app.use(csrfProtection.doubleCsrfProtection);
 
+// 5. Flash Messages
 app.use(flash());
 
+// 6. Debugging Middleware (Optional)
 app.use((req, res, next) => {
+  // Only logging strictly necessary info to keep console clean
   if (req.method === 'POST') {
-    console.log('=== CSRF DEBUG ===');
-    console.log('URL:', req.url);
-    console.log('Session ID:', req.sessionID);
-    console.log('Body token:', req.body.csrfToken);
-    console.log('Cookie token:', req.cookies['__APP-psfi.x-csrf-token']);
-    console.log('Headers:', req.headers['x-csrf-token']);
+    // console.log('=== POST DEBUG: CSRF Token Check ===');
+    // console.log('Body:', req.body.csrfToken);
   }
-
-  if (req.method === 'GET') {
-    console.log('=== GET REQUEST DEBUG ===');
-    console.log('URL:', req.url);
-    console.log('Session ID:', req.sessionID);
-    console.log('Cookie exists:', !!req.cookies['__APP-psfi.x-csrf-token']);
-  }
-
   next();
 });
 
+// 7. User Hydration (Find User from Session)
 app.use((req, res, next) => {
   if (!req.session.user) {
     return next();
   }
-
-  // Fetch fresh user from database to get Sequelize methods
   User.findByPk(req.session.user.id)
     .then((user) => {
       if (!user) {
         return next();
       }
-      req.session.user = user; // Replace the plain object with Sequelize instance
+      req.session.user = user;
       next();
     })
     .catch((err) => {
-      throw new Error(err);
-      // console.log(err);
-      // next();
+      // Create a specific error object to pass to next()
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      next(error);
     });
 });
 
+// 8. Local Variables (Available in every view)
 app.use((req, res, next) => {
   res.locals.isAuthenticated = req.session.isLoggedIn;
   res.locals.csrfToken = csrfProtection.generateToken(req, res);
   next();
 });
 
-// ** DEFINING RELATIONS BETWEEN TABLES
+// --- ROUTES START ---
+
+app.use('/admin', adminRoutes.router);
+app.use(shopRoutes.router);
+app.use(authRoutes);
+
+app.get('/500', errorPage.error500);
+
+// --- ERROR HANDLING START ---
+
+// 1. 404 Handler (Catches pages not found)
+// Note: You need to make sure errorPage.error404 exists and is exported in your controller
+app.use(errorPage.error404);
+
+// 2. CSRF Error Handler (Specific)
+// This must come BEFORE the generic error handler
+app.use((err, req, res, next) => {
+  if (err.code === 'EBADCSRFTOKEN') {
+    console.log('CSRF Token Error Handled');
+    return res
+      .status(403)
+      .send('Invalid CSRF token. Please refresh the page and try again.');
+  }
+  next(err);
+});
+
+// 3. Global 500 Error Handler (Generic)
+app.use((err, req, res, next) => {
+  console.log('Global Error Caught:', err);
+  errorPage.error500(req, res, next);
+});
+
+// --- DATABASE SYNC & SERVER START ---
+
+// Define Relations
 Product.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
 User.hasMany(Product);
 User.hasOne(Cart);
@@ -140,40 +180,10 @@ Cart.belongsToMany(Product, { through: CartItem });
 Product.belongsToMany(Cart, { through: CartItem });
 Order.belongsTo(User);
 User.hasMany(Order);
-Order.belongsToMany(Product, {
-  through: OrderItem,
-  constraints: false,
-});
-Product.belongsToMany(Order, {
-  through: OrderItem,
-  constraints: false,
-});
+Order.belongsToMany(Product, { through: OrderItem, constraints: false });
+Product.belongsToMany(Order, { through: OrderItem, constraints: false });
 
-//**MY ROUTES */
-app.use('/admin', adminRoutes.router); // registering the admin routes\
-app.use(shopRoutes.router); // registering the shop routes
-app.use(authRoutes); // registering the auth routes
-
-// ** REDIRECTION 500
-app.get('/500', errorPage.error500);
-
-// ** REDIRECTION 404
-app.use((err, req, res, next) => {
-  console.log('Error caught:', err);
-  errorPage.error500(req, res, next); // Call your controller function
-});
-
-// CSRF Error handler
-app.use((err, req, res, next) => {
-  if (err.code === 'EBADCSRFTOKEN') {
-    console.log('CSRF Token Error:', err);
-    return res
-      .status(403)
-      .send('Invalid CSRF token. Please refresh the page and try again.');
-  }
-  next(err);
-});
-
+// Sync and Listen
 sequelize
   .sync({ force: false })
   .then(() => {
@@ -187,5 +197,3 @@ sequelize
   .catch((err) => {
     console.log(err);
   });
-
-// creating a server that listens on port 3000

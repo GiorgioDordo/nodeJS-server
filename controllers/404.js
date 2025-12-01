@@ -10,9 +10,6 @@ exports.error500 = (req, res, next) => {
     docTitle: '500',
     path: '/500',
     isAuthenticated: req.session.isLoggedIn,
+    csrfToken: null,
   });
 };
-
-// commento per testare il webhook !
-//testing push webhook !
-// testing
